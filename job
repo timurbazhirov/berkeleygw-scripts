@@ -1,0 +1,128 @@
+#!/bin/tcsh
+#PBS -l mppwidth=1920,walltime=0:30:00
+#PBS -k eo
+#PBS -V
+#PBS -N BGW_FeSe
+#PBS -q debug
+#PBS -A mp173
+#PBS -V
+#PBS -m ae
+#PBS -M ttbazhirov@lbl.gov
+####--------------------------####
+####  Calculation steps init  ####
+####--------------------------####
+set SCF       = true
+set BS        = true
+set WFN       = true
+set WFN_FINE  = true
+set CHI0      = true
+set CHI0_FINE = true
+set SIGMA     = true
+set INTEQP    = true
+####--------------------------####
+####  Calculation param init  ####
+####--------------------------####
+set MPIVAR = aprun
+set NPOOL  = 1
+set NPOOL_bs = 24
+set NPROC      = 1920
+set NPROC_eps  = 240
+set JDIR   = $PBS_O_WORKDIR
+set TMP    = $JDIR/_outdir
+####-------------------------####
+####  Path directories init  ####
+####-------------------------####
+set PWDIR     = "${HOME}/espresso-5.0/bin/pw.x"
+set PW2BGWDIR = "${HOME}/espresso-5.0/bin/pw2bgw.x"
+set EPSDIR    = "${HOME}/BGW/trunk/bin/epsilon.cplx.x"
+set SIGDIR    = "${HOME}/BGW/BerkeleyGW/bin/sigma.cplx.x"
+set INTEQP    = "${HOME}/BGW/BerkeleyGW/bin/inteqp.cplx.x"
+####-------------------------####
+####    MPI commands init    ####
+####-------------------------####
+set PW        = "$MPIVAR -n $NPROC $PWDIR -npool $NPOOL"
+set PW_BS     = "$MPIVAR -n $NPROC $PWDIR -npool $NPOOL_bs"
+set PW2BGW    = "$MPIVAR -n $NPROC $PW2BGWDIR -npool $NPOOL"
+set EPS       = "$MPIVAR -n $NPROC_eps -N 6 $EPSDIR -npool $NPOOL"
+set SIG       = "$MPIVAR -n $NPROC_eps -N 6 $SIGDIR -npool $NPOOL"
+####-------------------------####
+####  Start the calculation  ####
+####-------------------------####
+cd $JDIR
+#-------------------------------#
+if ( $SCF == true ) then 
+    echo "Running SCF calculation"
+    cd ./01-scf
+    $PW < ./in > ./out        
+    cd -
+endif
+#-------------------------------#
+if ( $BS == true ) then 
+    echo "Running BS calculation"
+    cd ./03-bs
+    # run the calculation
+    $PW_BS < ./in > ./out        
+    # convert the wfns
+    cp pp_in $TMP/
+    cd $TMP
+    $PW2BGW < ./pp_in >& ./pp_out
+    cp ./pp_out $JDIR/03-bs/pp_out
+    cd $JDIR
+
+endif
+#-------------------------------#
+if ( $WFN == true ) then 
+    echo "Running WFN calculation"
+    cd ./02-wfn
+    # run the calculation
+    $PW < ./in >& ./out
+    # convert the wfns
+    cp pp_in $TMP/
+    cd $TMP
+    $PW2BGW < ./pp_in >& ./pp_out
+    cp ./pp_out $JDIR/02-wfn/pp_out
+    cd $JDIR
+endif
+#-------------------------------#
+if ( ${WFN_FINE} == true ) then 
+    echo "Running WFN_FINE calculation"
+    cd ./02-wfn_fine
+    # run the calculation
+    $PW_BS < ./in >& ./out
+    # convert the wfns
+    cp pp_in $TMP/
+    cd $TMP
+    $PW2BGW < ./pp_in >& ./pp_out
+    cp ./pp_out $JDIR/02-wfn_fine/pp_out
+    cd $JDIR
+endif
+#-------------------------------#
+if ( $CHI0 == true ) then
+    echo "Running CHI0 calculation"
+    cd $JDIR/07-epsilon
+    $EPS >& ./OUT.eps
+    cd -
+endif
+#-------------------------------#
+if ( $CHI0_FINE == true ) then
+    echo "Running CHI0_Q calculation"
+    cd $JDIR/07-epsilon_fine
+    $EPS >& ./OUT.eps
+    cd -
+endif
+#-------------------------------#
+if ( $SIGMA == true ) then
+    echo "Running SIGMA calculation"
+    cd $JDIR/08-sigma
+    rm vxc.dat
+    $SIG >& ./OUT.sigma
+    cd -
+endif
+#-------------------------------#
+if ( $INTEQP == true ) then
+    echo "Running INTEQP interpolation"
+    cd $JDIR/09-inteqp
+    $INTEQP >& ./OUT.inteqp
+    cd -
+endif
+#-------------------------------#
