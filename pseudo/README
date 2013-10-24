@@ -1,0 +1,9 @@
+Pseudopotentials used in the calculation for FeSe
+
+Cutoff energies are given as suggestions (TB)
+
+Fe.pbe-sp-mt_gipaw.UPF - norm-conserving with semicores and 160 Ry kinetic energy cutoff
+Fe.pbe-mt_fhi.UPF - norm-conserving without semicores and 70 Ry kinetic energy cutoff
+Se.pbe-hgh.UPF - norm-conserving without semicores and 70 Ry cutoff (or smaller)
+
+
