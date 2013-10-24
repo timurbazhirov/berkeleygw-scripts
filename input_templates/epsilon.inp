@@ -1,0 +1,9 @@
+epsilon_cutoff 5
+
+number_bands 25
+band_occupation 11*1 14*0
+number_partial_occup 5
+degeneracy_check_override
+
+frequency_dependence 0
+

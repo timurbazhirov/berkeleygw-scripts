@@ -1,0 +1,10 @@
+Input templates for:
+
+QuantumESPRESSO:
+     espresso.inp
+     bs_path.inp - kpoint path for the bandstructure calculation
+
+BerkeleyGW:
+     epsilon.inp
+     sigma.inp
+     inteqp.inp
