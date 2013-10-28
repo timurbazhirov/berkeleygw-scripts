@@ -1,5 +1,5 @@
 BerkeleyGW_bandstructure_sh
-===========================
+==============================
 
 Set of input templates and shell scripts to run an electronic bandstructure calculation with Quantum ESPRESSO and BerkeleyGW from scratch
 
